@@ -14,6 +14,15 @@ export default defineNuxtConfig({
     enabled: true
   },
 
+  app: {
+    head: {
+      title: 'Nixaura',
+      meta: [
+        { name: 'description', content: 'Votre assistant de chat intelligent propulsé par Nixaura' }
+      ]
+    }
+  },
+
   css: ['~/assets/css/main.css'],
 
   experimental: {
