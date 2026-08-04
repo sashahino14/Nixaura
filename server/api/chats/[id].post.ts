@@ -3,11 +3,7 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import type { AnthropicLanguageModelOptions } from '@ai-sdk/anthropic'
-import { anthropic } from '@ai-sdk/anthropic'
-import type { GoogleLanguageModelOptions } from '@ai-sdk/google'
-// import { google } from '@ai-sdk/google'
-import type { OpenAILanguageModelResponsesOptions } from '@ai-sdk/openai'
+import { deepSeek } from '@ai-sdk/deepseek'
 import { openai } from '@ai-sdk/openai'
 
 defineRouteMeta({
@@ -24,10 +20,7 @@ export default defineEventHandler(async (event) => {
     id: z.string()
   }).parse)
 
-  const { model, messages } = await readValidatedBody(event, z.object({
-    model: z.string().refine(value => MODELS.some(m => m.value === value), {
-      message: 'Invalid model'
-    }),
+  const { messages } = await readValidatedBody(event, z.object({
     messages: z.array(z.custom<UIMessage>())
   }).parse)
 
@@ -41,12 +34,12 @@ export default defineEventHandler(async (event) => {
     }
   })
   if (!chat) {
-    throw createError({ statusCode: 404, statusMessage: 'Chat not found' })
+    throw createError({ statusCode: 404, statusMessage: 'Discussion introuvable' })
   }
 
   if (!chat.title) {
     const { text: title } = await generateText({
-      model: 'openai/gpt-5-nano',
+      model: openai('gpt-4o-mini'),
       instructions: `You are a title generator for a chat:
           - Generate a short title based on the first user's message
           - The title should be less than 30 characters long
@@ -76,7 +69,7 @@ export default defineEventHandler(async (event) => {
     execute: async ({ writer }) => {
       const result = streamText({
         abortSignal: abortController.signal,
-        model,
+        model: deepSeek('deepseek-chat'),
         instructions: `You are a knowledgeable and helpful AI assistant. ${session.user?.username ? `The user's name is ${session.user.username}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
@@ -102,29 +95,7 @@ export default defineEventHandler(async (event) => {
         messages: await convertToModelMessages(messages),
         tools: {
           chart: chartTool,
-          weather: weatherTool,
-          ...(model.startsWith('anthropic/') && { web_search: anthropic.tools.webSearch_20250305() }),
-          ...(model.startsWith('openai/') && { web_search: openai.tools.webSearch() })
-          // TODO: enable once AI SDK supports combining provider-defined tools with custom tools
-          // ...(model.startsWith('google/') && { google_search: google.tools.googleSearch({}) })
-        },
-        providerOptions: {
-          anthropic: {
-            thinking: {
-              type: 'enabled',
-              budgetTokens: 2048
-            }
-          } satisfies AnthropicLanguageModelOptions,
-          google: {
-            thinkingConfig: {
-              includeThoughts: true,
-              thinkingLevel: 'low'
-            }
-          } satisfies GoogleLanguageModelOptions,
-          openai: {
-            reasoningEffort: 'low',
-            reasoningSummary: 'detailed'
-          } satisfies OpenAILanguageModelResponsesOptions
+          weather: weatherTool
         },
         stopWhen: isStepCount(5),
         experimental_transform: smoothStream()
@@ -133,7 +104,7 @@ export default defineEventHandler(async (event) => {
       if (!chat.title) {
         writer.write({
           type: 'data-chat-title',
-          data: { message: 'Generating title...' },
+          data: { message: 'Génération du titre...' },
           transient: true
         })
       }
