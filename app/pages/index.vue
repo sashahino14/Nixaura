@@ -7,9 +7,9 @@ const { user } = useUserSession()
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
-  let timeGreeting = 'Good evening'
-  if (hour < 12) timeGreeting = 'Good morning'
-  else if (hour < 18) timeGreeting = 'Good afternoon'
+  let timeGreeting = 'Bonsoir'
+  if (hour < 12) timeGreeting = 'Bonjour'
+  else if (hour < 18) timeGreeting = 'Bon après-midi'
 
   const name = user.value?.name?.split(' ')[0] || user.value?.username
 
@@ -62,31 +62,31 @@ async function onSubmit() {
 
 const quickChats = [
   {
-    label: 'Why use Nuxt UI?',
+    label: 'Pourquoi utiliser Nuxt UI ?',
     icon: 'i-logos-nuxt-icon'
   },
   {
-    label: 'Help me create a Vue composable',
+    label: 'Aide-moi à créer un composable Vue',
     icon: 'i-logos-vue'
   },
   {
-    label: 'Tell me more about UnJS',
+    label: 'Dis-m\'en plus sur UnJS',
     icon: 'i-logos-unjs'
   },
   {
-    label: 'Why should I consider VueUse?',
+    label: 'Pourquoi devrais-je considérer VueUse ?',
     icon: 'i-logos-vueuse'
   },
   {
-    label: 'Tailwind CSS best practices',
+    label: 'Bonnes pratiques Tailwind CSS',
     icon: 'i-logos-tailwindcss-icon'
   },
   {
-    label: 'What is the weather in Bordeaux?',
+    label: 'Quel temps fait-il à Bordeaux ?',
     icon: 'i-lucide-sun'
   },
   {
-    label: 'Show me a chart of sales data',
+    label: 'Montre-moi un graphique de données de vente',
     icon: 'i-lucide-line-chart'
   }
 ]
